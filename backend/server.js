@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import pool from './src/config/db.js';
+import initializeDatabase from './src/utils/initializeDatabase.js';
 import { errorHandler } from './src/middlewares/error.middleware.js';
 import authRoutes from './src/routes/auth.routes.js';
 import farmerRoutes from './src/routes/farmer.routes.js';
@@ -125,6 +126,11 @@ app.listen(PORT, async () => {
   console.log(`🚀 ERP Server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log('');
+  
+  // Initialize database schema on startup
+  await initializeDatabase();
+  console.log('');
+  
   await testDatabaseConnection();
   
   // Initialize scheduled tasks
