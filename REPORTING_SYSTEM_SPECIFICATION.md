@@ -1,0 +1,802 @@
+# ✅ MASTER PROMPT – LAKSHAN YOGURT ERP REPORTING SYSTEM
+
+*(Accountant-Friendly • Audit-Ready • Fully Balanced)*
+
+---
+
+## 🎯 SYSTEM CONTEXT
+
+You are designing the **Reporting Module** of a **manufacturing ERP system** named **"Lakshan Yogurt ERP"**, used by a yogurt and dairy production company in Sri Lanka.
+
+This ERP must comply with:
+
+* Accountant best practices
+* Audit requirements
+* Financial accuracy & reconciliation
+* Sri Lankan statutory reporting expectations (EPF/ETF)
+
+---
+
+## 🧩 CORE DESIGN RULES (NON-NEGOTIABLE)
+
+### 1. **Single Reports Page Only**
+
+* URL: `/reports`
+* No navigation to other pages
+* Clicking a report card must load the report **inside the same page**
+* All reports must be accessible from this single page
+
+### 2. **Dashboard is NOT a report**
+
+* No dashboard data or charts in reports
+* Reports are strictly financial & operational
+* Dashboard remains separate at `/` (root path)
+
+### 3. **Read-Only Reporting**
+
+* No edits allowed
+* Reports are the single source of truth
+* All data is historical and immutable
+* View-only interface with no modification capabilities
+
+### 4. **All calculations must be done in backend (SQL Views)**
+
+* ❌ No UI calculations
+* ❌ No frontend summing
+* ❌ No JavaScript aggregations
+* ✔ Excel, PDF, and UI must read from the same data source
+* ✔ All calculations done in PostgreSQL views/functions
+* ✔ Single source of truth for all report data
+
+---
+
+## 📍 REPORT PAGE UI STRUCTURE
+
+### Top Section – Report Cards Grid
+
+Display the following cards in a responsive grid layout:
+
+```
+🥛 Milk Collection Report
+👷 Salary & Payroll Report
+📦 Inventory Report
+🏭 Production Report
+🛒 Sales Report
+🔁 Returns Report
+💰 Payments Report
+🧾 Cheques Report
+💸 Expenses Report
+📑 Final Financial Report
+```
+
+**Card Behavior:**
+* Each card is clickable
+* When clicked:
+  * Load the report below the cards
+  * Highlight the selected card
+  * Do NOT navigate away from `/reports`
+  * Replace only the report content area
+  * Maintain filter state if switching between reports
+
+**Card Design:**
+* Icon + Report Name
+* Hover effect
+* Active state indication
+* Consistent styling across all cards
+
+---
+
+## 📊 REPORT CONTENT STRUCTURE (STANDARD FOR ALL REPORTS)
+
+Each report must strictly follow this order:
+
+### 1️⃣ Filters Section
+
+**Required Filters:**
+* **Date Range** (From Date – To Date) - Required
+* **Month / Year Selector** - Alternative to date range (for monthly reports)
+* **Quick Filters**: Today, This Week, This Month, This Year, Last Month, Last Year
+
+**Optional Entity Filters** (Report-Specific):
+* Customer/Buyer (for Sales, Payments)
+* Employee/Worker (for Salary, Payroll)
+* Product (for Sales, Production, Inventory)
+* Salesperson (for Sales, Allocations)
+* Farmer (for Milk Collection)
+
+**Filter Behavior:**
+* Filters must recalculate:
+  * Detailed data table
+  * Summary totals
+  * Excel & PDF exports
+* Apply button to trigger recalculation
+* Reset button to clear all filters
+* URL parameters to preserve filter state (optional, for sharing)
+
+---
+
+### 2️⃣ Detailed Data Table (Audit Critical)
+
+**Requirements:**
+* Every row must represent a real database transaction
+* No aggregated rows in the detail table
+* Fully sortable columns (click column header)
+* Filterable columns (where applicable)
+* Pagination (50, 100, 200, All rows per page)
+* Column names must be accountant-friendly
+
+**Example – Sales Report Table:**
+```
+| Invoice No | Date       | Customer      | Product      | Qty  | Unit Price | Amount      | Payment Status |
+|------------|------------|---------------|--------------|------|------------|-------------|----------------|
+| INV-001    | 2026-03-15 | ABC Shop      | Yogurt 500ml | 100  | 150.00     | 15,000.00   | Paid           |
+| INV-002    | 2026-03-15 | XYZ Store     | Ice Packet   | 50   | 200.00     | 10,000.00   | Pending        |
+```
+
+**Table Features:**
+* Sortable columns
+* Export current view
+* Print-friendly styling
+* Responsive design (scrollable on mobile)
+* Column visibility toggle (optional)
+
+---
+
+### 3️⃣ Summary Section (MUST APPEAR AT THE BOTTOM)
+
+This section must be **visually separated** and clearly readable.
+
+**Visual Design:**
+* Separated with a clear border/divider
+* Styled box/panel
+* Clear typography
+* Currency formatting (LKR format)
+
+**Example – Sales Report Summary:**
+
+```
+┌─────────────────────────────────────────────┐
+│ Report Summary                              │
+├─────────────────────────────────────────────┤
+│ Report Name      : Sales Report             │
+│ Period           : March 2026                │
+│ Generated On     : 2026-04-01 10:30 AM      │
+│ Generated By     : Admin User                │
+├─────────────────────────────────────────────┤
+│ Total Sales      :   5,200,000.00           │
+│ Total Returns    :      (120,000.00)        │
+│                                              │
+│ Net Sales        :   5,080,000.00           │
+│                                              │
+│ Total Payments   :   4,300,000.00           │
+│ Outstanding      :     780,000.00           │
+└─────────────────────────────────────────────┘
+```
+
+**Summary Requirements:**
+✔ These values must come directly from backend calculations
+✔ Must match Excel & PDF exactly
+✔ No frontend calculations
+✔ Display key metrics relevant to the report type
+
+---
+
+### 4️⃣ Download Section
+
+Provide buttons with clear icons:
+
+```
+⬇ Download Excel (Audit Format)
+⬇ Download PDF (A4 – Audit Ready)
+🖨 Print Report
+```
+
+**Button Behavior:**
+* Excel: Downloads `.xlsx` file with multiple sheets
+* PDF: Downloads `.pdf` file (A4 format)
+* Print: Opens browser print dialog (print-optimized CSS)
+* All exports use the same filter criteria as current view
+* All exports use backend-calculated data (no frontend manipulation)
+
+---
+
+## 📥 EXCEL EXPORT REQUIREMENTS (AUDITOR STANDARD)
+
+Each Excel file must contain **multiple sheets**:
+
+### Sheet 1 – Summary
+
+**Format:**
+* Report name and period at the top
+* Summary values in tabular format
+* Clear labeling
+* Currency formatting
+* No formulas (hard values only for audit trail)
+
+**Example Structure:**
+```
+Sales Report Summary
+Period: March 2026
+
+Metric                    Amount
+─────────────────────────────────
+Total Sales            5,200,000.00
+Total Returns            120,000.00
+Net Sales              5,080,000.00
+Total Payments         4,300,000.00
+Outstanding              780,000.00
+```
+
+### Sheet 2 – Transaction Details
+
+**Format:**
+* Exact same rows as UI table
+* All columns from detail table
+* Headers in first row (bold)
+* No hidden rows
+* No formatting tricks
+* Raw data only (no formulas)
+* Freeze panes for header row
+
+### Sheet 3 – Reconciliation (If applicable)
+
+**Example – Sales Reconciliation:**
+
+```
+Sales Reconciliation Report
+Period: March 2026
+
+Item                      Amount
+─────────────────────────────────
+Sales Total           5,080,000.00
+Payments Received     4,300,000.00
+─────────────────────────────────
+Outstanding             780,000.00
+
+Breakdown by Payment Status:
+Paid                 4,300,000.00
+Partial                  50,000.00
+Pending                 730,000.00
+```
+
+### Excel File Naming Convention:
+```
+{ReportName}_{Period}_{DateGenerated}.xlsx
+
+Example: Sales_Report_March_2026_20260401.xlsx
+```
+
+---
+
+## 📄 PDF EXPORT REQUIREMENTS
+
+### Page Specifications:
+* **Size**: A4 (210mm × 297mm)
+* **Orientation**: Portrait (unless specified)
+* **Margins**: 20mm (all sides)
+* **Font**: Arial or Times New Roman (readable, professional)
+
+### Header Section:
+```
+┌─────────────────────────────────────────┐
+│ [Company Logo]  LAKSHAN YOGURT ERP      │
+│                                         │
+│ [Report Name]                           │
+│ Period: [Start Date] to [End Date]      │
+│ Generated: [Date] [Time]                │
+└─────────────────────────────────────────┘
+```
+
+### Content Section:
+* Report title (centered, bold, larger font)
+* Period information
+* Detailed data table (if applicable)
+* Proper table formatting
+* Page breaks where necessary
+* Page numbers (Page X of Y)
+
+### Footer Section:
+```
+┌─────────────────────────────────────────┐
+│ Summary Section:                        │
+│ [Summary values]                        │
+│                                         │
+│ Generated by: [User Name]               │
+│ Generated on: [Date Time]               │
+└─────────────────────────────────────────┘
+```
+
+### PDF File Naming Convention:
+```
+{ReportName}_{Period}_{DateGenerated}.pdf
+
+Example: Sales_Report_March_2026_20260401.pdf
+```
+
+---
+
+## 🧮 FINANCIAL LOGIC REQUIREMENTS
+
+### Profit & Loss Statement
+
+**Revenue Section:**
+```
+Total Sales Revenue        : X,XXX,XXX.00
+Less: Returns              :   (XXX,XXX.00)
+─────────────────────────────────────────
+Net Sales Revenue          : X,XXX,XXX.00
+```
+
+**Cost of Goods Sold (COGS):**
+```
+Raw Materials (Milk)       : X,XXX,XXX.00
+Raw Materials (Other)      :   XXX,XXX.00
+Packaging Materials        :   XXX,XXX.00
+Production Costs           :   XXX,XXX.00
+─────────────────────────────────────────
+Total COGS                 : X,XXX,XXX.00
+```
+
+**Gross Profit:**
+```
+Net Sales Revenue          : X,XXX,XXX.00
+Less: Total COGS           : (X,XXX,XXX.00)
+─────────────────────────────────────────
+Gross Profit               : X,XXX,XXX.00
+```
+
+**Operating Expenses:**
+```
+Salaries & Wages           : X,XXX,XXX.00
+Operational Expenses       :   XXX,XXX.00
+Utilities                  :   XXX,XXX.00
+Other Expenses             :   XXX,XXX.00
+─────────────────────────────────────────
+Total Operating Expenses   : X,XXX,XXX.00
+```
+
+**Net Profit:**
+```
+Gross Profit               : X,XXX,XXX.00
+Less: Operating Expenses   : (X,XXX,XXX.00)
+─────────────────────────────────────────
+Net Profit                 : X,XXX,XXX.00
+```
+
+### Balance Sheet
+
+**Assets:**
+```
+Current Assets:
+  Cash & Bank              : X,XXX,XXX.00
+  Accounts Receivable      :   XXX,XXX.00
+  Inventory                :   XXX,XXX.00
+  Prepaid Expenses         :    XX,XXX.00
+─────────────────────────────────────────
+Total Current Assets       : X,XXX,XXX.00
+
+Fixed Assets:
+  Equipment                :   XXX,XXX.00
+  Vehicles                 :   XXX,XXX.00
+─────────────────────────────────────────
+Total Fixed Assets         :   XXX,XXX.00
+
+Total Assets               : X,XXX,XXX.00
+```
+
+**Liabilities:**
+```
+Current Liabilities:
+  Accounts Payable         :   XXX,XXX.00
+  Accrued Expenses         :    XX,XXX.00
+  EPF Payable              :    XX,XXX.00
+  ETF Payable              :    XX,XXX.00
+─────────────────────────────────────────
+Total Current Liabilities  :   XXX,XXX.00
+
+Total Liabilities          :   XXX,XXX.00
+```
+
+**Equity:**
+```
+Capital                    : X,XXX,XXX.00
+Retained Earnings          :   XXX,XXX.00
+─────────────────────────────────────────
+Total Equity               : X,XXX,XXX.00
+```
+
+**Mandatory Validation:**
+```
+Assets = Liabilities + Equity
+```
+System must **block report generation** if this equation fails and display an error message.
+
+---
+
+## 📑 FINAL FINANCIAL REPORT (SPECIAL CARD)
+
+When the **"Final Financial Report"** card is clicked:
+
+### View: Summary-Only View
+
+**Sections Included:**
+
+1. **Profit & Loss Statement**
+   * Complete P&L as defined above
+   * All revenue and expense categories
+
+2. **Balance Sheet**
+   * Assets, Liabilities, Equity
+   * Balance validation
+
+3. **Inventory Valuation**
+   * Current inventory value by category
+   * Raw materials, Finished goods, Packaging
+
+4. **Payroll Summary**
+   * Total salaries paid
+   * EPF/ETF contributions
+   * Worker count
+
+5. **Auditor Notes Section**
+   * Empty section for auditor comments
+   * Report metadata (generated date, user, etc.)
+
+**Purpose:**
+* For auditors
+* For banks (financial statements)
+* For company owners (executive summary)
+* For regulatory compliance
+
+**Export Options:**
+* Excel (multiple sheets: P&L, Balance Sheet, Inventory, Payroll)
+* PDF (A4, professional formatting)
+
+---
+
+## 🧠 DATA ACCURACY & AUDIT SAFETY RULES
+
+### Backend Calculation Rules:
+
+1. **SQL Views for All Reports**
+   * Create PostgreSQL views for each report type
+   * Views calculate all aggregations
+   * UI, Excel, and PDF read from same views
+   * No duplicate calculation logic
+
+2. **Lock Past Accounting Periods**
+   * Prevent modifications to closed periods
+   * Configurable period locking
+   * Audit trail for any changes
+
+3. **Single Source of Truth**
+   * Same data source for UI, Excel, and PDF
+   * No data transformation in frontend
+   * Backend API returns exact data for exports
+
+4. **No Duplicate Financial Logic**
+   * All calculations in one place (database/backend)
+   * Reusable calculation functions
+   * Consistent formulas across all reports
+
+5. **Auto-Flag Mismatches**
+   * Inventory vs stock movement reconciliation
+   * Sales vs payments reconciliation
+   * EPF/ETF vs payroll validation
+   * Display warnings in reports if mismatches found
+
+### Data Validation Rules:
+
+* **Inventory Reconciliation:**
+  ```
+  Opening Stock + Purchases + Production - Sales - Returns = Closing Stock
+  ```
+
+* **Sales vs Payments:**
+  ```
+  Total Sales = Total Payments + Outstanding
+  ```
+
+* **EPF/ETF Validation:**
+  ```
+  EPF Amount = Gross Salary × EPF Percentage
+  ETF Amount = Gross Salary × ETF Percentage
+  ```
+
+* **Balance Sheet Validation:**
+  ```
+  Assets = Liabilities + Equity (MANDATORY)
+  ```
+
+---
+
+## 📋 INDIVIDUAL REPORT SPECIFICATIONS
+
+### 1. Milk Collection Report
+
+**Filters:**
+* Date Range
+* Farmer (optional)
+
+**Detail Table Columns:**
+| Date | Farmer Name | Quantity (Liters) | Rate | Amount | Payment Status |
+
+**Summary:**
+* Total Quantity Collected
+* Total Amount
+* Number of Farmers
+* Average Quantity per Farmer
+
+**Excel Sheets:**
+1. Summary
+2. Collection Details
+3. Farmer-wise Summary
+
+---
+
+### 2. Salary & Payroll Report
+
+**Filters:**
+* Month/Year
+* Worker (optional)
+* Payment Status (optional)
+
+**Detail Table Columns:**
+| Worker Name | Month | Days Present | Daily Salary | Gross Salary | EPF | ETF | Advances | Net Pay | Payment Status |
+
+**Summary:**
+* Total Gross Salary
+* Total EPF
+* Total ETF
+* Total Advances
+* Total Net Pay
+* Number of Workers
+
+**Excel Sheets:**
+1. Summary
+2. Payroll Details
+3. Worker-wise Summary
+
+---
+
+### 3. Inventory Report
+
+**Filters:**
+* Date Range
+* Category (Raw Material, Packaging, Finished Goods, Utilities)
+* Item (optional)
+
+**Detail Table Columns:**
+| Item Name | Category | Opening Stock | Purchases | Production | Sales | Returns | Closing Stock | Value |
+
+**Summary:**
+* Total Inventory Value
+* Category-wise Breakdown
+* Low Stock Items Count
+* Expiring Items Count
+
+**Excel Sheets:**
+1. Summary
+2. Inventory Details
+3. Category-wise Summary
+
+---
+
+### 4. Production Report
+
+**Filters:**
+* Date Range
+* Product (optional)
+
+**Detail Table Columns:**
+| Date | Product | Quantity Produced | Batch Number | Production Cost | Status |
+
+**Summary:**
+* Total Quantity Produced
+* Total Production Cost
+* Number of Batches
+* Products Produced
+
+**Excel Sheets:**
+1. Summary
+2. Production Details
+3. Product-wise Summary
+
+---
+
+### 5. Sales Report
+
+**Filters:**
+* Date Range
+* Customer/Buyer (optional)
+* Product (optional)
+* Salesperson (optional)
+* Payment Status (optional)
+
+**Detail Table Columns:**
+| Invoice No | Date | Customer | Product | Quantity | Unit Price | Amount | Payment Status |
+
+**Summary:**
+* Total Sales
+* Total Returns
+* Net Sales
+* Total Payments
+* Outstanding
+
+**Excel Sheets:**
+1. Summary
+2. Sales Details
+3. Reconciliation
+
+---
+
+### 6. Returns Report
+
+**Filters:**
+* Date Range
+* Product (optional)
+* Customer (optional)
+
+**Detail Table Columns:**
+| Date | Sale Invoice | Customer | Product | Quantity | Reason | Replacement Given |
+
+**Summary:**
+* Total Returns (Quantity)
+* Total Returns (Value)
+* Return Rate
+* Top Return Reasons
+
+**Excel Sheets:**
+1. Summary
+2. Return Details
+3. Product-wise Returns
+
+---
+
+### 7. Payments Report
+
+**Filters:**
+* Date Range
+* Customer (optional)
+* Payment Type (Cash/Cheque)
+* Status (optional)
+
+**Detail Table Columns:**
+| Date | Sale Invoice | Customer | Cash Amount | Cheque Amount | Total Amount | Status |
+
+**Summary:**
+* Total Cash Payments
+* Total Cheque Payments
+* Total Payments
+* Pending Payments
+
+**Excel Sheets:**
+1. Summary
+2. Payment Details
+3. Customer-wise Summary
+
+---
+
+### 8. Cheques Report
+
+**Filters:**
+* Date Range
+* Status (Pending/Cleared/Bounced)
+* Bank (optional)
+
+**Detail Table Columns:**
+| Cheque No | Date | Bank | Amount | Return Date | Status | Customer |
+
+**Summary:**
+* Total Cheque Amount
+* Pending Cheques
+* Cleared Cheques
+* Bounced Cheques
+* Expiring Soon (within 7 days)
+
+**Excel Sheets:**
+1. Summary
+2. Cheque Details
+3. Status Summary
+
+---
+
+### 9. Expenses Report
+
+**Filters:**
+* Date Range
+* Category (optional)
+* Type (optional)
+
+**Detail Table Columns:**
+| Date | Type | Category | Description | Amount | Created By |
+
+**Summary:**
+* Total Expenses
+* Category-wise Breakdown
+* Type-wise Breakdown
+* Monthly Trend
+
+**Excel Sheets:**
+1. Summary
+2. Expense Details
+3. Category Summary
+
+---
+
+### 10. Final Financial Report
+
+**Sections:**
+1. Profit & Loss Statement (complete)
+2. Balance Sheet (complete)
+3. Inventory Valuation
+4. Payroll Summary
+5. Auditor Notes
+
+**Filters:**
+* Month/Year
+* Include/Exclude sections (optional)
+
+**Export:**
+* Excel (multiple sheets)
+* PDF (A4 format)
+
+---
+
+## 🏁 FINAL SYSTEM DESCRIPTION (OUTPUT MUST MATCH THIS)
+
+> **"Lakshan Yogurt ERP includes a centralized, accountant-friendly, audit-ready reporting system that generates fully balanced Excel and A4 PDF reports, including gross profit, net profit, and balance sheet, ensuring 100% financial accuracy and reconciliation across all operational modules."**
+
+**Key Characteristics:**
+* Single `/reports` page for all reports
+* Backend-calculated data (SQL views)
+* Read-only, immutable reports
+* Audit-ready Excel and PDF exports
+* Financial accuracy validation
+* Accountant-friendly terminology
+* Sri Lankan statutory compliance (EPF/ETF)
+
+---
+
+## ✅ IMPLEMENTATION CHECKLIST
+
+### Backend Requirements:
+- [ ] Create SQL views for each report type
+- [ ] Create API endpoints for each report
+- [ ] Implement Excel export functionality
+- [ ] Implement PDF export functionality
+- [ ] Add financial validation (Balance Sheet, etc.)
+- [ ] Add reconciliation checks
+- [ ] Implement period locking mechanism
+- [ ] Add audit trail logging
+
+### Frontend Requirements:
+- [ ] Create single `/reports` page
+- [ ] Design report cards grid
+- [ ] Implement report content area
+- [ ] Add filters section
+- [ ] Create detailed data table component
+- [ ] Create summary section component
+- [ ] Add download buttons (Excel, PDF, Print)
+- [ ] Implement report switching logic
+- [ ] Add loading states
+- [ ] Add error handling
+
+### Testing Requirements:
+- [ ] Test all reports generate correctly
+- [ ] Verify Excel exports match UI data
+- [ ] Verify PDF exports match UI data
+- [ ] Test financial validations
+- [ ] Test reconciliation checks
+- [ ] Test filter functionality
+- [ ] Test date range selections
+- [ ] Test export file downloads
+- [ ] Test print functionality
+- [ ] Test on different screen sizes
+
+---
+
+**Document Version:** 1.0  
+**Last Updated:** 2024  
+**Purpose:** Master specification for Lakshan Yogurt ERP Reporting System
+
